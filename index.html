@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Vue Color Chooser Demo 2</title>
+    <style>
+
+        :root {
+            --grid-cell-size: 20px; /* default for very small screens (otherwise undefined) */
+            font-family: sans-serif;
+            --bgcolor: lightgray;
+            background-color: var(--bgcolor);
+        }
+
+        /* Scale our grid sizes to user's screen width */
+        @media (min-width: 490px) {
+            :root {
+                --grid-cell-size: 25px;
+            }
+        }
+
+        @media (min-width: 600px) {
+            :root {
+                --grid-cell-size: 30px;
+            }
+        }
+
+        @media (min-width: 800px) {
+            :root {
+                --grid-cell-size: 40px;
+            }
+        }
+
+        @media (min-width: 1000px) {
+            :root {
+                --grid-cell-size: 50px;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            :root {
+                --grid-cell-size: 60px;
+            }
+        }
+
+        body {
+            margin: 10px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        base-grid, #baseColors {
+            display: grid;
+            grid-template-columns: repeat(19, var(--grid-cell-size));
+        }
+
+        final-grid {
+            display: inline-grid;
+            grid-template-columns: repeat(7, var(--grid-cell-size)); /* best w/odd number */
+        }
+
+        readout-grid {
+            display: inline-grid;
+            grid-template-columns: repeat(3, calc(var(--grid-cell-size) * 4));
+            height: calc(var(--grid-cell-size) * 6);
+            max-width: 70px; /* scroll screen instead of wrapping beneath elements to my left */
+        }
+
+        base-el, .base-el, final-el {
+            font-size: calc(var(--grid-cell-size) / 4);
+            line-height: calc(var(--grid-cell-size) / 4);
+            /*border-radius: calc(var(--grid-cell-size) / 8); causes lockups (performance) */
+            height: calc(var(--grid-cell-size) / 1.1);
+            display: block;
+            color: white;
+            border-color: var(--bgcolor);
+            border-style: solid;
+            border-width: 2px;
+            cursor: pointer;
+            padding-left: calc(var(--grid-cell-size) / 20);
+            padding-top: calc(var(--grid-cell-size) / 20);
+        }
+
+        @keyframes blink {
+            0% {
+                border: 2px solid white;
+            }
+            100% {
+                border: 2px solid black;
+            }
+        }
+
+        /* Highlight a selected cell */
+        .selected {
+            animation: blink .6s step-start infinite alternate;
+            animation-timing-function: ease-in-out;
+            /*todo: causes lockup w/Chrome ("mousehandler timeout?") */
+            /*transform: skewY(-20deg);*/
+        }
+
+        .notSelected {
+        }
+
+        button {
+            width: 100px;
+            height: 70px;
+            align-self: center;
+            cursor: pointer;
+            border: 3px solid gray;
+        }
+
+        button:hover,
+        button:focus {
+            background: white;
+        }
+
+    </style>
+
+    <script src="https://unpkg.com/vue"></script>
+</head>
+<body>
+
+<span id="colorChooser">
+    <h1>Vue Color Chooser</h1>
+    <b>Click to lock Base Color:</b>
+    <span :style="'color: white; background-color: rgb(' + baseRed + ','
+                                                        + baseGrn + ','
+                                                        + baseBlu + ');'">
+        {{baseRed}} {{baseGrn}} {{baseBlu}}</span>
+
+    <div id="baseColors">
+    <div class="base-el"
+         v-on:mouseover="doHover"
+         v-for="colors in baseItems"
+         :style="'background-color: rgb(' + colors.redLev + ','
+                                          + colors.grnLev + ','
+                                          + colors.bluLev + ');'">
+        R:{{colors.redLev}}<br>G:{{colors.grnLev}}<br>B:{{colors.bluLev}}
+    </div>
+    </div>
+    </div>
+
+    <script>
+
+    ///////////// BASE COLOR CHOOSER ////////////////
+
+    new Vue({
+        el: '#colorChooser',
+        data: {
+            baseRed: 255,
+            baseGrn: 255,
+            baseBlu: 255
+        },
+
+        computed: {
+            baseItems: function () {
+                // Derive grid size from CSS:
+                const baseStyle = window.getComputedStyle(document.getElementById("baseColors"));
+                const baseSpec = baseStyle.getPropertyValue("grid-template-columns");
+                const baseCols = baseSpec.split(/ /).length - 1;
+                let itemArray = [];
+                let redLev = 255;
+                let grnLev = 255;
+                let bluLev = 255;
+                // Base rainbow grid.  Math derived from https://krazydad.com/tutorials/makecolors.php:
+                const sinFreq = .3;
+                const greenPhase = 2 * Math.PI / 3;
+                const bluePhase = 4 * Math.PI / 3;
+                const sineWidth = 127;
+                const sineCtr = 128;
+                for (let j = 0; j < baseCols; ++j) {
+                    redLev = Math.round(Math.sin(sinFreq * j + 0) * sineWidth + sineCtr);
+                    grnLev = Math.round(Math.sin(sinFreq * j + greenPhase) * sineWidth + sineCtr);
+                    bluLev = Math.round(Math.sin(sinFreq * j + bluePhase) * sineWidth + sineCtr);
+                    itemArray.push({redLev, grnLev, bluLev});
+                }
+                // Add gray square:
+                redLev = grnLev = bluLev = 127;
+                itemArray.push({redLev, grnLev, bluLev});
+                return itemArray;
+            }
+        },
+        methods: {
+            doHover(event) {
+                let curRGB = event.currentTarget.style.backgroundColor.slice(4,-1);
+                if (curRGB.length) {
+                    [ this.baseRed, this.baseGrn, this.baseBlu ] = curRGB.split(', ');
+                }
+                // replace(/^rgb\((\d+,\d+\d+)\)/$1/, );
+                // if ()
+                console.log(`Hovering on ${event.currentTarget.style.backgroundColor}`);
+                console.log(`curRGB is ${curRGB}`);
+                console.log(`baseRed is ${this.baseRed}`);
+                console.log(`baseGrn is ${this.baseGrn}`);
+                console.log(`baseBlu is ${this.baseBlu}`);
+            }
+        }
+    });
+</script>
+</body>
+</html>
