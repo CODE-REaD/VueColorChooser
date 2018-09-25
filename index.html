@@ -171,7 +171,8 @@
                     + readoutRed + ',' + readoutGrn + ',' + readoutBlu + ');'"
           v-html="'R:' + readoutRed + '<br>G:' + readoutGrn + '<br>B:' + readoutBlu"></span>
 
-        <span style="padding: 12px" v-if="1"><b>{{clipCopied}}</b> copied to clipboard.</span>
+        <span style="padding: 12px" v-if="clipCopied"><b>{{clipCopied}}</b> copied to clipboard.</span>
+        <span style="padding: 12px" v-else></span>
         <span></span>
         <button v-on:click="copyToClip(readoutRed,',',readoutGrn,',',readoutBlu)">
             Copy <b>{{readoutRed}},{{readoutGrn}},{{readoutBlu}}</b> to clipboard</button>
@@ -262,7 +263,6 @@
             baseHover(event) {
                 if (!this.baseLock) {
                     this.baseSelection = event.currentTarget.id;
-                    // event.currentTarget.class = "selected";
                     let curRGB = event.currentTarget.style.backgroundColor.slice(4, -1);
                     if (curRGB.length) {
                         [this.baseRed, this.baseGrn, this.baseBlu] = curRGB.split(', ');
@@ -270,6 +270,11 @@
                 }
             },
             baseClick() {
+                this.baseSelection = event.currentTarget.id;
+                let curRGB = event.currentTarget.style.backgroundColor.slice(4, -1);
+                if (curRGB.length) {
+                    [this.baseRed, this.baseGrn, this.baseBlu] = curRGB.split(', ');
+                }
                 this.baseLock = !this.baseLock;
             },
             finalHover(event) {
