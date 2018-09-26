@@ -339,7 +339,6 @@
                 for (let i = 0; i < arguments.length; i++) {
                     toCopy += arguments[i];
                 }
-                console.log(`copyToClip: ${toCopy}`);
                 let textArea = document.createElement("textarea");
                 textArea.value = toCopy;
                 document.body.appendChild(textArea);
