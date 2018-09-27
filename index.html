@@ -121,6 +121,8 @@
 
 <div id="colorChooser">
     <h1>Vue Color Chooser <span id="vccVersion"></span></h1>
+
+    <!--BASE COLOR CHOOSER:-->
     <b>Click to lock Base Color:</b>
     <span :style="'color: white; background-color: rgb(' + baseRed + ','
                                                         + baseGrn + ','
@@ -141,6 +143,8 @@
         </div>
     </div>
     <br>
+
+    <!--FINAL COLOR CHOOSER:-->
     <b>Click to lock Final Color:</b>
     <span :style="'color: ' + fgColor(readoutRed, readoutGrn, readoutBlu) +
                   '; background-color: rgb(' + readoutRed + ','
@@ -161,6 +165,7 @@
         </div>
     </div>
 
+    <!--FINAL READOUT AND CLIPBOARD-COPY BUTTONS:-->
     <span id="readoutGrid">
     <span style="text-align: right; padding: 6px"><b>Final<br>Color:</b></span>
     <span :style="'color: ' + fgColor(readoutRed, readoutGrn, readoutBlu)
@@ -180,8 +185,9 @@
 </div>
 
 <script>
-    const release = "0.1a";          // "Semantic version" for end users
+    const release = "0.2";          // "Semantic" program version for end users
     document.getElementById("vccVersion").innerHTML = release;
+    document.title = "Vue Color Chooser " + release;
 
     const finalStyle = window.getComputedStyle(document.getElementById("finalColors"));
     const finalSpec = finalStyle.getPropertyValue("grid-template-columns");
@@ -216,8 +222,14 @@
             clipCopied: undefined,
         },
 
+        // The "base" grid contains a fixed set of initial colors to choose from.
+        // The "final" grid changes dynamically to colors adjacent to that of the
+        // currently selected base grid cell.  So initialize the base grid with a
+        // spectrum of colors, and initialize the final grid with the coordinates
+        // needed to calculate its colors at finalCell(), below.
+        //
         computed: {
-            ///////////// BASE COLOR GRID ////////////////
+            ///////////// CALCULATE BASE GRID COLORS and IDs:
             baseProps: function () {
                 // Derive grid size from CSS:
                 const baseStyle = window.getComputedStyle(document.getElementById("baseColors"));
@@ -248,7 +260,7 @@
                 return baseArray;
             },
 
-            ///////////// FINAL COLOR GRID ////////////////
+            ///////////// CALCULATE FINAL COLOR GRID CELL COORDINATES & IDs:
             finalProps: function () {
                 // Derive grid size from CSS:
                 let finalArray = [];
@@ -334,6 +346,7 @@
                 }
             },
 
+            // Copy argument(s) to end user system's clipboard:
             copyToClip() {
                 let toCopy = "";
                 for (let i = 0; i < arguments.length; i++) {
